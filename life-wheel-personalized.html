@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Check-In: How Are Things Really Going?</title>
+    <style>
+        /* Main page setup - keeping it clean and calming */
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            /* Nice gradient background that isn't too intense */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        /* The main white container that holds everything */
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* Main title styling */
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        
+        /* Subtitle under the main heading */
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+        
+        /* Layout for the wheel and controls side by side */
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        /* Container for the wheel canvas */
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 20px;
+        }
+        
+        /* The actual wheel canvas styling */
+        #wheelCanvas {
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        /* Container for all the sliders */
+        .controls-container {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Each life area category box */
+        .category {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        /* Subtle hover effect for categories */
+        .category:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Category headers with emojis */
+        .category h3 {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Container for slider and value */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* The actual slider - with a gradient from red to green */
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+            background: linear-gradient(to right, #fed7d7 0%, #fbb6ce 25%, #f6e05e 50%, #9ae6b4 75%, #68d391 100%);
+            cursor: pointer;
+        }
+        
+        /* Slider thumb (the draggable circle) for Chrome/Safari */
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #2d3748;
+        }
+        
+        /* Slider thumb for Firefox */
+        .slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        /* The number display next to each slider */
+        .value-display {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* Bottom section with reflection questions */
+        .reflection-section {
+            grid-column: 1 / -1;
+            margin-top: 30px;
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Alert box for areas that need attention */
+        .low-areas {
+            background: linear-gradient(135deg, #fff5f5, #fed7e2);
+            border: 2px solid #fc8181;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(252, 129, 129, 0.2);
+        }
+        
+        .low-areas h3 {
+            color: #c53030;
+            margin-bottom: 10px;
+        }
+        
+        /* Container for reflection questions */
+        .reflection-questions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        /* Individual question styling */
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .question strong {
+            color: #4a5568;
+        }
+        
+        /* Container for action buttons */
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        /* Base button styling */
+        .button {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-weight: 600;
+        }
+        
+        /* Reset button styling */
+        .reset-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .reset-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Print/Save button styling */
+        .print-button {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+        }
+        
+        /* Helper text under the wheel */
+        .wheel-legend {
+            margin-top: 20px;
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        /* Responsive design for tablets */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .wheel-container {
+                order: 2;
+                position: static;
+            }
+            
+            .controls-container {
+                order: 1;
+            }
+            
+            #wheelCanvas {
+                width: 350px !important;
+                height: 350px !important;
+            }
+        }
+        
+        /* Responsive design for phones */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            #wheelCanvas {
+                width: 300px !important;
+                height: 300px !important;
+            }
+            
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Print styles - hide buttons when printing */
+        @media print {
+            body {
+                background: white;
+            }
+            .buttons-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>How's Life Going, Really?</h1>
+        <p class="subtitle">Take a minute to check in with yourself. Rate each area based on how you're actually feeling right now - not where you think you should be.</p>
+        
+        <div class="main-content">
+            <!-- The wheel visualization -->
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div class="wheel-legend">
+                    Pro tip: You can click directly on the wheel to adjust values
+                </div>
+            </div>
+            
+            <!-- All the life area sliders -->
+            <div class="controls-container">
+                <h2>Rate Each Area (1 = struggling, 10 = thriving)</h2>
+                
+                <div class="category">
+                    <h3>💼 Work / Career</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="career">
+                        <div class="value-display" id="career-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>💰 Money Stuff</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="finances">
+                        <div class="value-display" id="finances-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>💪 Physical Health</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="physicalHealth">
+                        <div class="value-display" id="physicalHealth-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🧠 Mental Health</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="mentalHealth">
+                        <div class="value-display" id="mentalHealth-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>❤️ Relationships</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="relationships">
+                        <div class="value-display" id="relationships-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🏠 Your Space</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="environment">
+                        <div class="value-display" id="environment-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🎉 Fun & Play</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="funRecreation">
+                        <div class="value-display" id="funRecreation-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>📚 Growth & Learning</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="personalDevelopment">
+                        <div class="value-display" id="personalDevelopment-value">5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reflection and action planning section -->
+        <div class="reflection-section">
+            <div id="lowAreasSection" class="low-areas" style="display: none;">
+                <h3>🎯 Heads up - these areas might need some love:</h3>
+                <p id="lowAreasList"></p>
+            </div>
+            
+            <div class="reflection-questions">
+                <h2>Now, Let's Think About This...</h2>
+                
+                <div class="question">
+                    <strong>Look at your wheel shape. What jumps out at you?</strong><br>
+                    Is it lopsided? Super balanced? Smaller than you expected? Just notice without judging.
+                </div>
+                
+                <div class="question">
+                    <strong>Any surprises here?</strong><br>
+                    Sometimes we don't realize how good (or not so good) certain areas are until we stop and actually think about it.
+                </div>
+                
+                <div class="question">
+                    <strong>If you could only improve ONE area this month, which would it be?</strong><br>
+                    And here's the kicker - what's one tiny thing you could do about it this week? Like, embarrassingly small. That's where we start.
+                </div>
+                
+                <div class="question">
+                    <strong>What's actually working well?</strong><br>
+                    Seriously, give yourself some credit here. What are you doing right that you could keep doing or even do more of?
+                </div>
+                
+                <div class="question">
+                    <strong>Is there a connection between any of these areas?</strong><br>
+                    Like, maybe when work is stressful, fun takes a hit? Or when relationships are good, everything else feels easier?
+                </div>
+                
+                <div class="question">
+                    <strong>What would need to change for your lowest area to become a 7 or 8?</strong><br>
+                    Not a 10 - let's be realistic. But what would "pretty good" look like?
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <button class="button reset-button" onclick="resetWheel()">Start Over</button>
+                <button class="button print-button" onclick="window.print()">Save This</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the canvas and set up drawing context
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 180;
+        
+        // Define all our life categories and their positions on the wheel
+        const categories = [
+            { id: 'career', label: 'Work/Career', angle: 0 },
+            { id: 'finances', label: 'Money', angle: Math.PI / 4 },
+            { id: 'physicalHealth', label: 'Physical Health', angle: Math.PI / 2 },
+            { id: 'mentalHealth', label: 'Mental Health', angle: 3 * Math.PI / 4 },
+            { id: 'relationships', label: 'Relationships', angle: Math.PI },
+            { id: 'environment', label: 'Your Space', angle: 5 * Math.PI / 4 },
+            { id: 'funRecreation', label: 'Fun & Play', angle: 3 * Math.PI / 2 },
+            { id: 'personalDevelopment', label: 'Growth', angle: 7 * Math.PI / 4 }
+        ];
+
+        // Main function to draw the entire wheel
+        function drawWheel() {
+            // Clear the canvas first
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the background grid circles (1-10 scale)
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 10; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, (radius / 10) * i, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+            
+            // Draw the lines that divide each life area
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.lineWidth = 2;
+            categories.forEach(category => {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + radius * Math.cos(category.angle),
+                    centerY + radius * Math.sin(category.angle)
+                );
+                ctx.stroke();
+            });
+            
+            // Draw the outer boundary circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Add labels for each category around the wheel
+            ctx.fillStyle = '#4a5568';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            categories.forEach(category => {
+                const labelRadius = radius + 25;
+                const x = centerX + labelRadius * Math.cos(category.angle);
+                const y = centerY + labelRadius * Math.sin(category.angle);
+                
+                // Handle multi-word labels by splitting them
+                const words = category.label.split(' ');
+                if (words.length > 1 && words[0] !== 'Mental' && words[0] !== 'Physical') {
+                    ctx.fillText(words[0], x, y - 5);
+                    ctx.fillText(words.slice(1).join(' '), x, y + 8);
+                } else {
+                    ctx.fillText(category.label, x, y);
+                }
+            });
+            
+            // Plot the actual values and connect them
+            const points = [];
+            ctx.fillStyle = '#e53e3e';
+            
+            // First, collect all the points based on slider values
+            categories.forEach(category => {
+                const value = parseInt(document.getElementById(category.id).value);
+                const dotRadius = (radius / 10) * value;
+                const x = centerX + dotRadius * Math.cos(category.angle);
+                const y = centerY + dotRadius * Math.sin(category.angle);
+                
+                points.push({ x, y });
+                
+                // Draw a dot at each point
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Connect all the dots to create the wheel shape
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(229, 62, 62, 0.1)';
+            ctx.beginPath();
+            points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.closePath();
+            ctx.fill();  // Fill the shape with transparent red
+            ctx.stroke();  // Draw the outline
+            
+            // Check if any areas need attention
+            updateLowAreas();
+        }
+
+        // Function to highlight areas that might need work
+        function updateLowAreas() {
+            const lowThreshold = 5;  // Anything 5 or below needs attention
+            const lowAreas = categories.filter(category => {
+                const value = parseInt(document.getElementById(category.id).value);
+                return value <= lowThreshold;
+            });
+            
+            const lowAreasSection = document.getElementById('lowAreasSection');
+            const lowAreasList = document.getElementById('lowAreasList');
+            
+            if (lowAreas.length > 0) {
+                lowAreasSection.style.display = 'block';
+                const areaNames = lowAreas.map(area => `${area.label} (${document.getElementById(area.id).value}/10)`).join(', ');
+                lowAreasList.textContent = `${areaNames}. Remember: small steps count! Pick one thing.`;
+            } else {
+                lowAreasSection.style.display = 'none';
+            }
+        }
+
+        // Set up event listeners for all the sliders
+        categories.forEach(category => {
+            const slider = document.getElementById(category.id);
+            const valueDisplay = document.getElementById(category.id + '-value');
+            
+            // Update the wheel whenever a slider moves
+            slider.addEventListener('input', function() {
+                valueDisplay.textContent = this.value;
+                drawWheel();
+            });
+        });
+
+        // Allow clicking directly on the wheel to adjust values
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Calculate distance and angle from center
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Only process clicks inside the wheel
+            if (distance <= radius && distance > 10) {
+                let angle = Math.atan2(dy, dx);
+                if (angle < 0) angle += 2 * Math.PI;
+                
+                // Figure out which category slice was clicked
+                let closestCategory = categories[0];
+                let minAngleDiff = Math.abs(angle - categories[0].angle);
+                
+                categories.forEach(category => {
+                    let angleDiff = Math.abs(angle - category.angle);
+                    // Handle wraparound at 360 degrees
+                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                    
+                    if (angleDiff < minAngleDiff) {
+                        minAngleDiff = angleDiff;
+                        closestCategory = category;
+                    }
+                });
+                
+                // Set the value based on how far from center they clicked
+                const value = Math.min(10, Math.max(1, Math.round((distance / radius) * 10)));
+                const slider = document.getElementById(closestCategory.id);
+                const valueDisplay = document.getElementById(closestCategory.id + '-value');
+                
+                // Update both the slider and the display
+                slider.value = value;
+                valueDisplay.textContent = value;
+                drawWheel();
+            }
+        });
+
+        // Reset everything back to 5s
+        function resetWheel() {
+            if (confirm("Start fresh with all values at 5?")) {
+                categories.forEach(category => {
+                    const slider = document.getElementById(category.id);
+                    const valueDisplay = document.getElementById(category.id + '-value');
+                    slider.value = 5;
+                    valueDisplay.textContent = 5;
+                });
+                drawWheel();
+            }
+        }
+
+        // Draw the wheel when the page loads
+        drawWheel();
+    </script>
+</body>
+</html>
