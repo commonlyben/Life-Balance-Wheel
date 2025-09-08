@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Balance Wheel - Monthly Check-In</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 20px;
+        }
+        
+        #wheelCanvas {
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .controls-container {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .category {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .category:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .category h3 {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+            background: linear-gradient(to right, #fed7d7 0%, #fbb6ce 25%, #f6e05e 50%, #9ae6b4 75%, #68d391 100%);
+            cursor: pointer;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #2d3748;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        
+        .value-display {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .reflection-section {
+            grid-column: 1 / -1;
+            margin-top: 30px;
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .low-areas {
+            background: linear-gradient(135deg, #fed7d7, #fbb6ce);
+            border: 2px solid #f56565;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.2);
+        }
+        
+        .low-areas h3 {
+            color: #c53030;
+            margin-bottom: 10px;
+        }
+        
+        .reflection-questions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .question strong {
+            color: #4a5568;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .button {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .reset-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .reset-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .print-button {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+        }
+        
+        .wheel-legend {
+            margin-top: 20px;
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .wheel-container {
+                order: 2;
+                position: static;
+            }
+            
+            .controls-container {
+                order: 1;
+            }
+            
+            #wheelCanvas {
+                width: 350px !important;
+                height: 350px !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            #wheelCanvas {
+                width: 300px !important;
+                height: 300px !important;
+            }
+            
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .buttons-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monthly Self Check-In</h1>
+        <p class="subtitle">Rate each area from 1-10 and see the shape of your life</p>
+        
+        <div class="main-content">
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div class="wheel-legend">
+                    Click on any slice to adjust its value
+                </div>
+            </div>
+            
+            <div class="controls-container">
+                <h2>Life Areas</h2>
+                
+                <div class="category">
+                    <h3>💼 Career</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="career">
+                        <div class="value-display" id="career-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>💰 Finances</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="finances">
+                        <div class="value-display" id="finances-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>💪 Physical Health</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="physicalHealth">
+                        <div class="value-display" id="physicalHealth-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🧠 Mental Health</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="mentalHealth">
+                        <div class="value-display" id="mentalHealth-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>❤️ Relationships</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="relationships">
+                        <div class="value-display" id="relationships-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🏠 Physical Environment</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="environment">
+                        <div class="value-display" id="environment-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>🎉 Fun + Recreation</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="funRecreation">
+                        <div class="value-display" id="funRecreation-value">5</div>
+                    </div>
+                </div>
+                
+                <div class="category">
+                    <h3>📚 Personal Development</h3>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="5" class="slider" id="personalDevelopment">
+                        <div class="value-display" id="personalDevelopment-value">5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reflection-section">
+            <div id="lowAreasSection" class="low-areas" style="display: none;">
+                <h3>🎯 Areas to Focus On</h3>
+                <p id="lowAreasList"></p>
+            </div>
+            
+            <div class="reflection-questions">
+                <h2>🤔 Reflection Questions</h2>
+                
+                <div class="question">
+                    <strong>What patterns do you notice in your wheel shape?</strong><br>
+                    Are there any areas that consistently score low? What might be causing this?
+                </div>
+                
+                <div class="question">
+                    <strong>Which area surprised you the most?</strong><br>
+                    Was there an area you rated higher or lower than expected? What does this tell you?
+                </div>
+                
+                <div class="question">
+                    <strong>What are your top 2-3 priorities for the next month?</strong><br>
+                    Based on your wheel, which areas need the most attention right now?
+                </div>
+                
+                <div class="question">
+                    <strong>What small action can you take this week?</strong><br>
+                    Choose one low-scoring area and identify one specific, actionable step you can take.
+                </div>
+                
+                <div class="question">
+                    <strong>How can you leverage your strengths?</strong><br>
+                    Which high-scoring areas can you use to support improvement in lower-scoring areas?
+                </div>
+                
+                <div class="question">
+                    <strong>What would a "10" look like in each low-scoring area?</strong><br>
+                    Be specific about what success would look and feel like.
+                </div>
+            </div>
+            
+            <div class="buttons-container">
+                <button class="button reset-button" onclick="resetWheel()">Reset All</button>
+                <button class="button print-button" onclick="window.print()">Print/Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 180;
+        
+        const categories = [
+            { id: 'career', label: 'Career', angle: 0 },
+            { id: 'finances', label: 'Finances', angle: Math.PI / 4 },
+            { id: 'physicalHealth', label: 'Physical Health', angle: Math.PI / 2 },
+            { id: 'mentalHealth', label: 'Mental Health', angle: 3 * Math.PI / 4 },
+            { id: 'relationships', label: 'Relationships', angle: Math.PI },
+            { id: 'environment', label: 'Environment', angle: 5 * Math.PI / 4 },
+            { id: 'funRecreation', label: 'Fun + Recreation', angle: 3 * Math.PI / 2 },
+            { id: 'personalDevelopment', label: 'Personal Development', angle: 7 * Math.PI / 4 }
+        ];
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw concentric circles (1-10 scale)
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 10; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, (radius / 10) * i, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+            
+            // Draw slice dividers
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.lineWidth = 2;
+            categories.forEach(category => {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + radius * Math.cos(category.angle),
+                    centerY + radius * Math.sin(category.angle)
+                );
+                ctx.stroke();
+            });
+            
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw category labels
+            ctx.fillStyle = '#4a5568';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            categories.forEach(category => {
+                const labelRadius = radius + 25;
+                const x = centerX + labelRadius * Math.cos(category.angle);
+                const y = centerY + labelRadius * Math.sin(category.angle);
+                
+                // Multi-line text for longer labels
+                const words = category.label.split(' ');
+                if (words.length > 1) {
+                    ctx.fillText(words[0], x, y - 5);
+                    ctx.fillText(words.slice(1).join(' '), x, y + 8);
+                } else {
+                    ctx.fillText(category.label, x, y);
+                }
+            });
+            
+            // Draw dots and connecting lines
+            const points = [];
+            ctx.fillStyle = '#e53e3e';
+            categories.forEach(category => {
+                const value = parseInt(document.getElementById(category.id).value);
+                const dotRadius = (radius / 10) * value;
+                const x = centerX + dotRadius * Math.cos(category.angle);
+                const y = centerY + dotRadius * Math.sin(category.angle);
+                
+                points.push({ x, y });
+                
+                // Draw dot
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Draw connecting lines
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(229, 62, 62, 0.1)';
+            ctx.beginPath();
+            points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            updateLowAreas();
+        }
+
+        function updateLowAreas() {
+            const lowThreshold = 6;
+            const lowAreas = categories.filter(category => {
+                const value = parseInt(document.getElementById(category.id).value);
+                return value <= lowThreshold;
+            });
+            
+            const lowAreasSection = document.getElementById('lowAreasSection');
+            const lowAreasList = document.getElementById('lowAreasList');
+            
+            if (lowAreas.length > 0) {
+                lowAreasSection.style.display = 'block';
+                const areaNames = lowAreas.map(area => `${area.label} (${document.getElementById(area.id).value}/10)`).join(', ');
+                lowAreasList.textContent = `Consider focusing your energy on: ${areaNames}`;
+            } else {
+                lowAreasSection.style.display = 'none';
+            }
+        }
+
+        // Add event listeners
+        categories.forEach(category => {
+            const slider = document.getElementById(category.id);
+            const valueDisplay = document.getElementById(category.id + '-value');
+            
+            slider.addEventListener('input', function() {
+                valueDisplay.textContent = this.value;
+                drawWheel();
+            });
+        });
+
+        // Canvas click handler
+        canvas.addEventListener('click', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance <= radius && distance > 10) {
+                let angle = Math.atan2(dy, dx);
+                if (angle < 0) angle += 2 * Math.PI;
+                
+                // Find closest category
+                let closestCategory = categories[0];
+                let minAngleDiff = Math.abs(angle - categories[0].angle);
+                
+                categories.forEach(category => {
+                    let angleDiff = Math.abs(angle - category.angle);
+                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                    
+                    if (angleDiff < minAngleDiff) {
+                        minAngleDiff = angleDiff;
+                        closestCategory = category;
+                    }
+                });
+                
+                // Set value based on distance from center
+                const value = Math.min(10, Math.max(1, Math.round((distance / radius) * 10)));
+                const slider = document.getElementById(closestCategory.id);
+                const valueDisplay = document.getElementById(closestCategory.id + '-value');
+                
+                slider.value = value;
+                valueDisplay.textContent = value;
+                drawWheel();
+            }
+        });
+
+        function resetWheel() {
+            categories.forEach(category => {
+                const slider = document.getElementById(category.id);
+                const valueDisplay = document.getElementById(category.id + '-value');
+                slider.value = 5;
+                valueDisplay.textContent = 5;
+            });
+            drawWheel();
+        }
+
+        // Initial draw
+        drawWheel();
+    </script>
+</body>
+</html>
